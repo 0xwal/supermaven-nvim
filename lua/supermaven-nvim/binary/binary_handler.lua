@@ -43,10 +43,15 @@ function BinaryLifecycle:start_binary()
   self.last_path = nil
   self.last_context = nil
   self.wants_polling = false
-  self.handle = loop.spawn(binary_path, {
-    args = {
-      "stdio",
-    },
+	local args = {
+		"--net",
+		"--ro-bind",
+		("%s/.supermaven"):format(vim.fn.expand("~")),
+		binary_path,
+		"stdio",
+	}
+  self.handle = loop.spawn("bwr", {
+    args = args,
     stdio = { self.stdin, self.stdout, self.stderr },
   }, function(code, signal)
     log:debug("sm-agent exited with code " .. code)
