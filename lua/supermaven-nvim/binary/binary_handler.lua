@@ -4,10 +4,7 @@ local loop = u.uv
 local textual = require("supermaven-nvim.textual")
 local config = require("supermaven-nvim.config")
 local preview = require("supermaven-nvim.completion_preview")
-local binary_fetcher = require("supermaven-nvim.binary.binary_fetcher")
 local log = require("supermaven-nvim.logger")
-
-local binary_path = binary_fetcher:fetch_binary()
 
 local BinaryLifecycle = {
   state_map = {},
@@ -61,20 +58,13 @@ function BinaryLifecycle:start_binary()
   self.last_context = nil
   self.wants_polling = false
 
+  local home_dir = vim.fn.expand("~")
+
   local args = {
-    "--unshare-all",
-		"--share-net",
-    "--ro-bind",
-    ("%s/.supermaven"):format(vim.fn.expand("~")),
-		("%s/.supermaven"):format(vim.fn.expand("~")),
-		"--bind",
-		("%s/.supermaven/config.json"):format(vim.fn.expand("~")),
-		("%s/.supermaven/config.json"):format(vim.fn.expand("~")),
-    binary_path,
     "stdio",
   }
 
-  self.handle = loop.spawn("bwr", {
+  self.handle = loop.spawn("supermaven", {
     args = args,
     stdio = { self.stdin, self.stdout, self.stderr },
   }, function(code, signal)
@@ -82,6 +72,15 @@ function BinaryLifecycle:start_binary()
     self.handle:close()
     self.handle = nil
   end)
+
+  loop.read_start(self.stderr, function(err, data)
+    if data then
+      print("stderr chunk", data)
+    else
+      print("stderr end")
+    end
+  end)
+
   if not self.handle then
     log:debug("Starting binary")
   end
@@ -354,8 +353,9 @@ function BinaryLifecycle:poll_once()
   end
 
   self.wants_polling = maybe_completion.is_incomplete
-  if maybe_completion.dedent == nil or
-   (#maybe_completion.dedent > 0 and not u.ends_with(line_before_cursor, maybe_completion.dedent))
+  if
+    maybe_completion.dedent == nil
+    or (#maybe_completion.dedent > 0 and not u.ends_with(line_before_cursor, maybe_completion.dedent))
   then
     return
   end
