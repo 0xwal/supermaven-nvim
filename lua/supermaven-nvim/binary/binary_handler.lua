@@ -36,6 +36,23 @@ timer:start(
 )
 
 function BinaryLifecycle:start_binary()
+  if self.handle and not self.handle:is_closing() then
+    self.handle:close()
+    self.handle = nil
+  end
+  if self.stdin and not self.stdin:is_closing() then
+    self.stdin:close()
+    self.stdin = nil
+  end
+  if self.stdout and not self.stdout:is_closing() then
+    self.stdout:close()
+    self.stdout = nil
+  end
+  if self.stderr and not self.stderr:is_closing() then
+    self.stderr:close()
+    self.stderr = nil
+  end
+
   self.stdin = loop.new_pipe(false)
   self.stdout = loop.new_pipe(false)
   self.stderr = loop.new_pipe(false)
