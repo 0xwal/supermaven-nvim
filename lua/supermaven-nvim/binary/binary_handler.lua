@@ -60,13 +60,20 @@ function BinaryLifecycle:start_binary()
   self.last_path = nil
   self.last_context = nil
   self.wants_polling = false
-	local args = {
-		"--net",
-		"--ro-bind",
+
+  local args = {
+    "--unshare-all",
+		"--share-net",
+    "--ro-bind",
+    ("%s/.supermaven"):format(vim.fn.expand("~")),
 		("%s/.supermaven"):format(vim.fn.expand("~")),
-		binary_path,
-		"stdio",
-	}
+		"--bind",
+		("%s/.supermaven/config.json"):format(vim.fn.expand("~")),
+		("%s/.supermaven/config.json"):format(vim.fn.expand("~")),
+    binary_path,
+    "stdio",
+  }
+
   self.handle = loop.spawn("bwr", {
     args = args,
     stdio = { self.stdin, self.stdout, self.stderr },
