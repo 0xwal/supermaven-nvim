@@ -73,13 +73,13 @@ function BinaryLifecycle:start_binary()
     self.handle = nil
   end)
 
-  loop.read_start(self.stderr, function(err, data)
-    if data then
-      print("stderr chunk", data)
-    else
-      print("stderr end")
-    end
-  end)
+  -- loop.read_start(self.stderr, function(err, data)
+  --   if data then
+  --     print("stderr chunk", data)
+  --   else
+  --     print("stderr end")
+  --   end
+  -- end)
 
   if not self.handle then
     log:debug("Starting binary")
